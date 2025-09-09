@@ -1,0 +1,29 @@
+apiVersion: servicespec.choreoatlas.io/v1
+kind: ServiceSpec
+metadata:
+  name: catalogue-service
+  version: "1.0.0"
+
+service: "catalogue"
+description: "Product catalogue service for Sock Shop"
+
+operations:
+  - operationId: "getCatalogue"
+    description: "Retrieve product catalogue"
+    method: GET
+    path: "/catalogue"
+    preconditions:
+      "service_available": "true"  # Service must be running
+    postconditions:
+      "response_ok": "response.status == 200"
+      "has_products": "size(response.body) > 0"
+      "valid_schema": "has(response.body[0].id) && has(response.body[0].name)"
+    examples:
+      success:
+        request: {}
+        response:
+          status: 200
+          body: 
+            - id: "sock123"
+              name: "Wool Socks"
+              price: 15.99

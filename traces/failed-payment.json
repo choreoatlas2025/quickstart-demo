@@ -1,0 +1,125 @@
+{
+  "traceID": "2b3c4d5e6f7890abcdef1234567890ab",
+  "spans": [
+    {
+      "traceID": "2b3c4d5e6f7890abcdef1234567890ab",
+      "spanID": "abcd1234567890ef",
+      "operationName": "GET /catalogue",
+      "startTime": 1694787700000000,
+      "duration": 42000,
+      "tags": {
+        "http.method": "GET",
+        "http.url": "http://catalogue/catalogue",
+        "http.status_code": 200,
+        "component": "catalogue-service"
+      },
+      "process": {
+        "serviceName": "catalogue",
+        "tags": {
+          "hostname": "catalogue-598d7f8c4b-xyz123"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787700020000,
+          "fields": {
+            "event": "catalogue.query",
+            "item_count": 6
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "2b3c4d5e6f7890abcdef1234567890ab",
+      "spanID": "bcde234567890fa1",
+      "parentSpanID": "abcd1234567890ef",
+      "operationName": "POST /carts/{id}",
+      "startTime": 1694787700050000,
+      "duration": 28000,
+      "tags": {
+        "http.method": "POST",
+        "http.url": "http://cart/carts/user456",
+        "http.status_code": 201,
+        "component": "cart-service"
+      },
+      "process": {
+        "serviceName": "cart",
+        "tags": {
+          "hostname": "cart-79b8c4d5f6-abc789"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787700065000,
+          "fields": {
+            "event": "item.added",
+            "item_id": "sock456",
+            "quantity": 1
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "2b3c4d5e6f7890abcdef1234567890ab",
+      "spanID": "cdef34567890fab2",
+      "parentSpanID": "bcde234567890fa1",
+      "operationName": "POST /orders",
+      "startTime": 1694787700085000,
+      "duration": 45000,
+      "tags": {
+        "http.method": "POST",
+        "http.url": "http://orders/orders",
+        "http.status_code": 422,
+        "component": "orders-service",
+        "error": true
+      },
+      "process": {
+        "serviceName": "orders",
+        "tags": {
+          "hostname": "orders-6b7d8f9c0a-def456"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787700095000,
+          "fields": {
+            "event": "order.failed",
+            "error": "payment authorization failed",
+            "customer_id": "user456"
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "2b3c4d5e6f7890abcdef1234567890ab",
+      "spanID": "def44567890fabc3",
+      "parentSpanID": "cdef34567890fab2",
+      "operationName": "POST /paymentAuth",
+      "startTime": 1694787700100000,
+      "duration": 25000,
+      "tags": {
+        "http.method": "POST", 
+        "http.url": "http://payment/paymentAuth",
+        "http.status_code": 402,
+        "component": "payment-service",
+        "error": true
+      },
+      "process": {
+        "serviceName": "payment",
+        "tags": {
+          "hostname": "payment-5a6b7c8d9e-ghi789"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787700115000,
+          "fields": {
+            "event": "payment.declined",
+            "error": "insufficient funds",
+            "card": "****1234"
+          }
+        }
+      ]
+    }
+  ]
+}

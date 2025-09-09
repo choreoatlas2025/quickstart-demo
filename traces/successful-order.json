@@ -1,0 +1,154 @@
+{
+  "traceID": "1a2b3c4d5e6f7890abcdef1234567890",
+  "spans": [
+    {
+      "traceID": "1a2b3c4d5e6f7890abcdef1234567890",
+      "spanID": "1234567890abcdef",
+      "operationName": "GET /catalogue",
+      "startTime": 1694787600000000,
+      "duration": 45000,
+      "tags": {
+        "http.method": "GET",
+        "http.url": "http://catalogue/catalogue",
+        "http.status_code": 200,
+        "component": "catalogue-service"
+      },
+      "process": {
+        "serviceName": "catalogue",
+        "tags": {
+          "hostname": "catalogue-598d7f8c4b-xyz123",
+          "jaeger.version": "Go-2.30.0"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787600025000,
+          "fields": {
+            "event": "catalogue.query",
+            "item_count": 6
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "1a2b3c4d5e6f7890abcdef1234567890", 
+      "spanID": "234567890abcdef1",
+      "parentSpanID": "1234567890abcdef",
+      "operationName": "POST /carts/{id}",
+      "startTime": 1694787600050000,
+      "duration": 32000,
+      "tags": {
+        "http.method": "POST",
+        "http.url": "http://cart/carts/user123",
+        "http.status_code": 201,
+        "component": "cart-service"
+      },
+      "process": {
+        "serviceName": "cart",
+        "tags": {
+          "hostname": "cart-79b8c4d5f6-abc789"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787600065000,
+          "fields": {
+            "event": "item.added",
+            "item_id": "sock123",
+            "quantity": 2
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "1a2b3c4d5e6f7890abcdef1234567890",
+      "spanID": "34567890abcdef12", 
+      "parentSpanID": "234567890abcdef1",
+      "operationName": "POST /orders",
+      "startTime": 1694787600090000,
+      "duration": 125000,
+      "tags": {
+        "http.method": "POST",
+        "http.url": "http://orders/orders",
+        "http.status_code": 201,
+        "component": "orders-service"
+      },
+      "process": {
+        "serviceName": "orders",
+        "tags": {
+          "hostname": "orders-6b7d8f9c0a-def456"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787600100000,
+          "fields": {
+            "event": "order.created",
+            "order_id": "order789",
+            "customer_id": "user123"
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "1a2b3c4d5e6f7890abcdef1234567890",
+      "spanID": "4567890abcdef123",
+      "parentSpanID": "34567890abcdef12", 
+      "operationName": "POST /paymentAuth",
+      "startTime": 1694787600110000,
+      "duration": 78000,
+      "tags": {
+        "http.method": "POST",
+        "http.url": "http://payment/paymentAuth",
+        "http.status_code": 200,
+        "component": "payment-service"
+      },
+      "process": {
+        "serviceName": "payment",
+        "tags": {
+          "hostname": "payment-5a6b7c8d9e-ghi789"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787600140000,
+          "fields": {
+            "event": "payment.authorized",
+            "authorization_id": "auth456", 
+            "amount": "29.99"
+          }
+        }
+      ]
+    },
+    {
+      "traceID": "1a2b3c4d5e6f7890abcdef1234567890",
+      "spanID": "567890abcdef1234",
+      "parentSpanID": "34567890abcdef12",
+      "operationName": "POST /shipping", 
+      "startTime": 1694787600195000,
+      "duration": 56000,
+      "tags": {
+        "http.method": "POST",
+        "http.url": "http://shipping/shipping",
+        "http.status_code": 201,
+        "component": "shipping-service"
+      },
+      "process": {
+        "serviceName": "shipping",
+        "tags": {
+          "hostname": "shipping-9c8d7e6f5a-jkl012"
+        }
+      },
+      "logs": [
+        {
+          "timestamp": 1694787600220000,
+          "fields": {
+            "event": "shipment.created",
+            "shipment_id": "ship321",
+            "tracking_number": "TRACK789456123"
+          }
+        }
+      ]
+    }
+  ]
+}

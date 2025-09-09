@@ -1,0 +1,39 @@
+apiVersion: servicespec.choreoatlas.io/v1
+kind: ServiceSpec
+metadata:
+  name: shipping-service
+  version: "1.0.0"
+
+service: "shipping"
+description: "Shipping and fulfillment service for Sock Shop"
+
+operations:
+  - operationId: "createShipment"
+    description: "Create shipping label and tracking"
+    method: POST
+    path: "/shipping"
+    preconditions:
+      "valid_order": "has(input.orderID) && input.orderID != ''"
+      "valid_address": "has(input.address.street) && has(input.address.city)"
+      "has_items": "size(input.items) > 0"
+    postconditions:
+      "shipment_created": "response.status == 201"
+      "has_tracking": "has(response.body.trackingNumber)"
+      "estimated_delivery": "has(response.body.estimatedDelivery)"
+    examples:
+      success:
+        request:
+          orderID: "order789"
+          address:
+            street: "123 Main St"
+            city: "San Francisco"
+            zipCode: "94105"
+          items:
+            - itemID: "sock123"
+              quantity: 2
+        response:
+          status: 201
+          body:
+            shipmentID: "ship321" 
+            trackingNumber: "TRACK789456123"
+            estimatedDelivery: "2024-09-15"

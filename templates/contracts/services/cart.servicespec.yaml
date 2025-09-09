@@ -1,0 +1,42 @@
+apiVersion: servicespec.choreoatlas.io/v1
+kind: ServiceSpec
+metadata:
+  name: cart-service
+  version: "1.0.0"
+
+service: "cart"
+description: "Shopping cart service for Sock Shop"
+
+operations:
+  - operationId: "addToCart"
+    description: "Add item to user's shopping cart"
+    method: POST
+    path: "/carts/{customerID}"
+    preconditions:
+      "valid_customer": "has(input.customerID) && input.customerID != ''"
+      "valid_item": "has(input.itemID) && input.itemID != ''"
+      "positive_quantity": "input.quantity > 0"
+    postconditions:
+      "item_added": "response.status == 201"
+      "cart_updated": "has(response.body.itemID)"
+    examples:
+      success:
+        request:
+          customerID: "user123"
+          itemID: "sock123"
+          quantity: 2
+        response:
+          status: 201
+          body:
+            itemID: "sock123"
+            quantity: 2
+
+  - operationId: "getCart"
+    description: "Retrieve user's shopping cart"
+    method: GET
+    path: "/carts/{customerID}"
+    preconditions:
+      "valid_customer": "has(input.customerID) && input.customerID != ''"
+    postconditions:
+      "response_ok": "response.status == 200"
+      "valid_cart": "has(response.body.items)"

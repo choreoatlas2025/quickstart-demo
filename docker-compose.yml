@@ -1,0 +1,151 @@
+# Simplified Sock Shop Microservices for ChoreoAtlas Demo
+# Based on microservices-demo/microservices-demo
+version: '3.8'
+
+services:
+  # Frontend service
+  frontend:
+    image: weaveworksdemos/front-end:0.3.12
+    ports:
+      - "8080:8080"
+    environment:
+      - COOKIE_DOMAIN=.localhost
+    depends_on:
+      - catalogue
+      - cart
+      - orders
+      - user
+    networks:
+      - choreoatlas-demo
+
+  # Catalogue service
+  catalogue:
+    image: weaveworksdemos/catalogue:0.3.5
+    ports:
+      - "8081:80"
+    environment:
+      - ZIPKIN=http://zipkin:9411/api/v1/spans
+    depends_on:
+      - catalogue-db
+    networks:
+      - choreoatlas-demo
+
+  # Catalogue database
+  catalogue-db:
+    image: weaveworksdemos/catalogue-db:0.3.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=fake_password
+      - MYSQL_DATABASE=socksdb
+    networks:
+      - choreoatlas-demo
+
+  # Cart service
+  cart:
+    image: weaveworksdemos/carts:0.4.8
+    ports:
+      - "8082:80"
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=true
+      - ZIPKIN=http://zipkin:9411/api/v1/spans
+    depends_on:
+      - cart-db
+    networks:
+      - choreoatlas-demo
+
+  # Cart database  
+  cart-db:
+    image: mongo:4.4
+    networks:
+      - choreoatlas-demo
+
+  # Orders service
+  orders:
+    image: weaveworksdemos/orders:0.4.7
+    ports:
+      - "8083:80"
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=true
+      - ZIPKIN=http://zipkin:9411/api/v1/spans
+    depends_on:
+      - orders-db
+      - shipping
+      - payment
+    networks:
+      - choreoatlas-demo
+
+  # Orders database
+  orders-db:
+    image: mongo:4.4
+    networks:
+      - choreoatlas-demo
+
+  # Shipping service
+  shipping:
+    image: weaveworksdemos/shipping:0.4.8
+    ports:
+      - "8084:80"
+    environment:
+      - JAVA_OPTS=-Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=true
+      - ZIPKIN=http://zipkin:9411/api/v1/spans
+    networks:
+      - choreoatlas-demo
+
+  # Payment service
+  payment:
+    image: weaveworksdemos/payment:0.4.3
+    ports:
+      - "8085:80"
+    environment:
+      - ZIPKIN=http://zipkin:9411/api/v1/spans
+    networks:
+      - choreoatlas-demo
+
+  # User service
+  user:
+    image: weaveworksdemos/user:0.4.4
+    ports:
+      - "8086:80"
+    environment:
+      - MONGO_HOST=user-db:27017
+      - ZIPKIN=http://zipkin:9411/api/v1/spans
+    depends_on:
+      - user-db
+    networks:
+      - choreoatlas-demo
+
+  # User database
+  user-db:
+    image: weaveworksdemos/user-db:0.3.0
+    networks:
+      - choreoatlas-demo
+
+  # Optional: Zipkin for tracing (advanced demo)
+  zipkin:
+    image: openzipkin/zipkin:2.23
+    ports:
+      - "9411:9411"
+    environment:
+      - STORAGE_TYPE=mem
+    networks:
+      - choreoatlas-demo
+
+  # Load generator for demo traces
+  loadgen:
+    image: weaveworksdemos/load-test:0.1.1
+    command: -h frontend -r 2 -c 2 -t 60s
+    depends_on:
+      - frontend
+    networks:
+      - choreoatlas-demo
+    profiles:
+      - load-test
+
+networks:
+  choreoatlas-demo:
+    driver: bridge
+
+# Health checks and demo automation
+# Run: docker-compose up -d
+# Wait: docker-compose exec frontend curl -f http://localhost:8080/health || exit 1
+# Load: docker-compose --profile load-test up loadgen
+# Traces: curl http://zipkin:9411/api/v2/traces > traces/live-trace.json
