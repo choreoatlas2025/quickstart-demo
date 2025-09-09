@@ -1,0 +1,46 @@
+apiVersion: servicespec.choreoatlas.io/v1
+kind: ServiceSpec
+metadata:
+  name: payment-service
+  version: "1.0.0"
+
+service: "payment"
+description: "Payment authorization service for Sock Shop"
+
+operations:
+  - operationId: "authorizePayment"
+    description: "Authorize payment for order"
+    method: POST
+    path: "/paymentAuth"
+    preconditions:
+      "valid_amount": "input.amount > 0"
+      "valid_currency": "input.currency == 'USD'"
+      "valid_card": "has(input.card.number) && size(input.card.number) >= 13"
+    postconditions:
+      "authorization_processed": "response.status == 200 || response.status == 402"
+      "has_auth_response": "has(response.body.authorised)"
+    examples:
+      success:
+        request:
+          amount: 31.98
+          currency: "USD"
+          card:
+            number: "4111111111111111"
+            expires: "01/25"
+            ccv: "123"
+        response:
+          status: 200
+          body:
+            authorised: true
+            authorizationID: "auth456"
+      failure:
+        request:
+          amount: 1000.00
+          currency: "USD"
+          card:
+            number: "4000000000000002"  # Declined card
+        response:
+          status: 402
+          body:
+            authorised: false
+            message: "Insufficient funds"

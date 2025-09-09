@@ -1,0 +1,42 @@
+apiVersion: servicespec.choreoatlas.io/v1
+kind: ServiceSpec
+metadata:
+  name: orders-service
+  version: "1.0.0"
+
+service: "orders"
+description: "Order management service for Sock Shop"
+
+operations:
+  - operationId: "createOrder"
+    description: "Create a new customer order"
+    method: POST
+    path: "/orders"
+    preconditions:
+      "valid_customer": "has(input.customer.id) && input.customer.id != ''"
+      "has_items": "size(input.items) > 0"
+      "valid_address": "has(input.address.street) && has(input.address.city)"
+      "valid_card": "has(input.card.number) && size(input.card.number) >= 13"
+    postconditions:
+      "order_created": "response.status == 201"
+      "has_order_id": "has(response.body.id)"
+      "order_total": "response.body.total > 0"
+    examples:
+      success:
+        request:
+          customer:
+            id: "user123"
+          items:
+            - itemID: "sock123"
+              quantity: 2
+              unitPrice: 15.99
+          address:
+            street: "123 Main St"
+            city: "San Francisco"
+          card:
+            number: "4111111111111111"
+        response:
+          status: 201
+          body:
+            id: "order789"
+            total: 31.98

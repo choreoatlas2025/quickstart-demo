@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChoreoAtlas Validation Report - Failed Payment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f44336; color: white; padding: 20px; border-radius: 8px; }
+        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #f44336; background: #f9f9f9; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        ul { list-style-type: none; padding: 0; }
+        li.success:before { content: "✅ "; color: #4CAF50; }
+        li.error:before { content: "❌ "; color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎭 ChoreoAtlas CLI Validation Report</h1>
+        <h2>⚠️ Demo Mode - Payment Failure Scenario</h2>
+    </div>
+    
+    <div class="section">
+        <h3>📊 Validation Summary</h3>
+        <p>This demonstrates how ChoreoAtlas detects and analyzes error scenarios in service choreography.</p>
+        <ul>
+            <li class="success">ServiceSpec contracts: 4/5 services validated</li>
+            <li class="error">FlowSpec choreography: Flow terminated early due to payment failure</li>
+            <li class="success">Error handling: Payment decline properly propagated</li>
+            <li class="success">Trace analysis: 4 spans processed (1 error detected)</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h3>🏗️ Service Analysis</h3>
+        <ul>
+            <li class="success">catalogue: GET /catalogue - completed successfully</li>
+            <li class="success">cart: POST /carts/user456 - item added successfully</li>
+            <li class="success">orders: POST /orders - order creation attempted</li>
+            <li class="error">payment: POST /paymentAuth - HTTP 402: Insufficient funds</li>
+            <li class="error">shipping: Not reached due to payment failure</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h3>⏱️ Flow Timeline</h3>
+        <p>Total execution time: 150ms (terminated early)</p>
+        <ul>
+            <li class="success">Catalogue Browse (0-42ms): ✅ Completed</li>
+            <li class="success">Add to Cart (50-78ms): ✅ Completed</li>
+            <li class="success">Create Order (85-130ms): ✅ Attempted</li>
+            <li class="error">Authorize Payment (100-125ms): ❌ Declined</li>
+            <li class="error">Create Shipment: ❌ Not executed</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h3>💡 Insights</h3>
+        <p class="error">This scenario demonstrates proper error handling in distributed systems:</p>
+        <ul>
+            <li class="success">Payment service correctly returned 402 status</li>
+            <li class="success">Order service handled payment failure gracefully</li>
+            <li class="success">Shipping step was correctly skipped</li>
+            <li class="success">No resource leaks or orphaned transactions detected</li>
+        </ul>
+    </div>
+</body>
+</html>
