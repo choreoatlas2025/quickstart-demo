@@ -1,20 +1,22 @@
 # ChoreoAtlas CLI Quickstart Demo
 
-**Map. Verify. Steer cross-service choreography from real traces with contracts-as-code.**
+Map. Verify. Steer cross‑service choreography with Contract‑as‑Code.
 
-This repository provides a complete 10-minute hands-on experience with ChoreoAtlas CLI using a microservices demo based on the Sock Shop architecture.
+This quickstart gives you a 2–10 minute, developer‑friendly journey using the ChoreoAtlas CLI with a Sock Shop–style microservices example. It is aligned with the current Community Edition (CE) CLI.
+
+中文文档请见 README.zh-CN.md
 
 ## 🚀 Quick Start (10 minutes)
 
 ### Prerequisites
 - Docker and Docker Compose
 - Make (GNU Make)
-- Latest ChoreoAtlas CLI
+- ChoreoAtlas CLI (or use the Docker image)
 
 ### Install ChoreoAtlas CLI
 
 ```bash
-# Option 1: Docker (no installation needed)
+# Option 1: Docker (no local install needed)
 alias choreoatlas='docker run --rm -v $(pwd):/workspace choreoatlas/cli:latest'
 
 # Option 2: Homebrew (macOS/Linux)
@@ -25,18 +27,18 @@ brew install choreoatlas
 # Visit https://github.com/choreoatlas2025/cli/releases
 ```
 
-### One-Command Demo
+### One‑Command Demo
 
 ```bash
 make demo
 ```
 
-That's it! This will:
-1. 🔍 **Discover** - Generate ServiceSpec + FlowSpec contracts from sample traces
-2. ✅ **Validate** - Verify choreography matches execution traces  
-3. 📊 **Report** - Generate and open HTML validation report
+That’s it! This will:
+1. 🔍 Discover: generate FlowSpec + ServiceSpecs from sample traces
+2. ✅ Validate: verify choreography against execution traces
+3. 📊 Report: generate an HTML report under `reports/`
 
-## 📋 What You'll Learn
+## 📋 What You’ll Learn
 
 - **ServiceSpec**: Service-level semantic validation with pre/post conditions
 - **FlowSpec**: Choreography-level temporal, causal, and DAG validation
@@ -63,14 +65,18 @@ The demo simulates an e-commerce microservices system:
 ```
 .
 ├── docker-compose.yml          # Sock Shop services (simplified)
-├── Makefile                   # One-command automation
+├── Makefile                   # One‑command automation
 ├── traces/                    # Pre-recorded trace samples
-│   ├── successful-order.json  # Happy path trace
-│   ├── failed-payment.json    # Error scenario trace
+│   ├── successful-order.trace.json  # Internal format (CE) – happy path
+│   ├── failed-payment.trace.json    # Internal format (CE) – failure scenario
+│   ├── successful-order.json        # Jaeger‑style sample (for reference)
+│   ├── failed-payment.json          # Jaeger‑style sample (for reference)
 │   └── README.md
-├── contracts/                 # Generated contracts
+├── contracts/                 # Contracts (generated + curated)
 │   ├── services/              # ServiceSpec files (.servicespec.yaml)
-│   └── flows/                 # FlowSpec files (.flowspec.yaml)
+│   └── flows/                 # FlowSpec files (sequential + graph)
+│       ├── order-flow.flowspec.yaml         # sequential (legacy)
+│       └── order-flow.graph.flowspec.yaml   # graph/DAG (preferred)
 ├── reports/                   # Generated HTML reports
 └── scripts/                   # Demo automation scripts
     ├── start-services.sh
@@ -80,14 +86,14 @@ The demo simulates an e-commerce microservices system:
 
 ## 🎯 Available Demo Paths
 
-### Path 1: Offline Demo (Fastest - 2 minutes)
+### Path 1: Offline Demo (Fastest — 2 minutes)
 Uses pre-recorded traces for immediate contract generation and validation:
 
 ```bash
 make offline-demo
 ```
 
-### Path 2: Live Tracing Demo (Complete - 10 minutes)
+### Path 2: Live Tracing Demo (Complete — ~10 minutes)
 Starts services, captures real traces, generates contracts:
 
 ```bash
@@ -101,18 +107,18 @@ Shows how to integrate with GitHub Actions:
 make ci-demo
 ```
 
-## 📖 Step-by-Step Walkthrough
+## 📖 Step‑by‑Step Walkthrough
 
 ### 1. Discover Contracts from Traces
 
 ```bash
-# Generate ServiceSpec contracts from traces
+# Generate FlowSpec and ServiceSpecs from a trace (CE format)
 choreoatlas discover \
-  --trace traces/successful-order.json \
-  --out-servicespec contracts/services/ \
-  --out-flowspec contracts/flows/order-flow.flowspec.yaml
+  --trace traces/successful-order.trace.json \
+  --out contracts/flows/order-flow.flowspec.yaml \
+  --out-services contracts/services
 
-# Output: ServiceSpec + FlowSpec contracts generated
+# Output: FlowSpec + ServiceSpec files generated
 ```
 
 ### 2. Validate Choreography
@@ -120,12 +126,15 @@ choreoatlas discover \
 ```bash
 # Validate actual execution against contracts
 choreoatlas validate \
-  --servicespec contracts/services/ \
-  --flowspec contracts/flows/order-flow.flowspec.yaml \
-  --trace traces/successful-order.json \
-  --report-html reports/validation-report.html
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+  --trace traces/successful-order.trace.json \
+  --report-format html --report-out reports/validation-report.html
 
-# Output: Validation results with detailed HTML report
+# Optional: also emit JSON or JUnit
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+  --trace traces/successful-order.trace.json \
+  --report-format json --report-out reports/validation-report.json
 ```
 
 ### 3. View Results
@@ -136,6 +145,8 @@ Open `reports/validation-report.html` to see:
 - ✅ Causal relationship validation
 - 📊 Coverage metrics and thresholds
 
+Note: The demo does not auto-open a browser. Open HTML files under `reports/` manually (for example, `reports/validation-report.html` or `reports/successful-order-report.html`).
+
 ## 🔧 Advanced Usage
 
 ### Custom Scenarios
@@ -145,23 +156,43 @@ Test different failure modes:
 ```bash
 # Test payment failure scenario
 choreoatlas validate \
-  --flowspec contracts/flows/order-flow.flowspec.yaml \
-  --trace traces/failed-payment.json \
-  --report-html reports/failure-analysis.html
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+  --trace traces/failed-payment.trace.json \
+  --report-format html --report-out reports/failure-analysis.html
 ```
 
 ### CI Integration
 
-Add to your `.github/workflows/validate.yml`:
+A ready-to-run workflow is included: `.github/workflows/choreoatlas-validation.yml`.
+- Runs `ci-gate` (lint + validate).
+- Generates `reports/junit.xml` and `reports/report.html`.
+- Prefers `order-flow.graph.flowspec.yaml` when present; falls back to the sequential file.
 
-```yaml
-- name: Validate Service Choreography
-  uses: choreoatlas2025/action@v1
-  with:
-    servicespec: contracts/services/
-    flowspec: contracts/flows/order-flow.flowspec.yaml
-    trace: traces/integration-test.json
+### Trace Conversion (Jaeger/OTLP → CE)
+
+If your traces are Jaeger or OTLP JSON, convert them into the CE internal format with the provided tool:
+
+```bash
+# Jaeger -> CE internal
+make convert-trace IN=traces/successful-order.json OUT=traces/successful-order.trace.json MAP=demo
+
+# OTLP -> CE internal
+make convert-trace IN=traces/otlp-sample.json OUT=traces/otlp-sample.trace.json
+
+# Or directly via Python
+python3 scripts/convert-trace.py traces/successful-order.json \
+  -o traces/successful-order.trace.json --map demo
+
+# Then validate
+choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml \
+  --trace traces/successful-order.trace.json \
+  --report-format html --report-out reports/from-converted.html
 ```
+
+Notes:
+- The converter supports two inputs: Jaeger-style JSON (spans[].operationName) and OTLP JSON (resourceSpans[]...).
+- Operation names may need mapping to your ServiceSpec operationId. Use `--map demo` for the Sock Shop endpoints, or `--map-file` with your own mapping.
+- Real-world traces often lack full response bodies; validations based on `response.body.*` may SKIP/FAIL. Status-code checks still work.
 
 ## 🎓 Next Steps
 

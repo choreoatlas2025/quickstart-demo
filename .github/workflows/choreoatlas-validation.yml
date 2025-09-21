@@ -1,0 +1,43 @@
+name: ChoreoAtlas Validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-choreography:
+    runs-on: ubuntu-latest
+    env:
+      CA: docker run --rm -v ${{ github.workspace }}:/workspace choreoatlas/cli:latest
+      FLOW_GRAPH: contracts/flows/order-flow.graph.flowspec.yaml
+      FLOW_SEQ: contracts/flows/order-flow.flowspec.yaml
+      TRACE: traces/successful-order.trace.json
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare reports dir
+        run: mkdir -p reports
+
+      - name: CI gate (lint + validate)
+        run: |
+          FLOW_FILE=$FLOW_GRAPH
+          if [ ! -f "$FLOW_FILE" ]; then FLOW_FILE=$FLOW_SEQ; fi
+          echo "Using FlowSpec: $FLOW_FILE"
+          $CA ci-gate --flow "/workspace/$FLOW_FILE" --trace "/workspace/$TRACE"
+
+      - name: Generate reports
+        run: |
+          FLOW_FILE=$FLOW_GRAPH
+          if [ ! -f "$FLOW_FILE" ]; then FLOW_FILE=$FLOW_SEQ; fi
+          $CA validate --flow "/workspace/$FLOW_FILE" --trace "/workspace/$TRACE" \
+            --report-format junit --report-out "/workspace/reports/junit.xml"
+          $CA validate --flow "/workspace/$FLOW_FILE" --trace "/workspace/$TRACE" \
+            --report-format html --report-out "/workspace/reports/report.html"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: choreoatlas-reports
+          path: reports/
+

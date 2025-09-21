@@ -4,91 +4,55 @@ This directory contains pre-recorded trace data for the ChoreoAtlas CLI quicksta
 
 ## Trace Files
 
-### `successful-order.json`
-**Happy Path Scenario**: Complete e-commerce order flow
-- **Flow**: Catalogue Browse → Add to Cart → Create Order → Payment Authorization → Shipping
-- **Services**: catalogue, cart, orders, payment, shipping
-- **Result**: ✅ All services respond successfully
-- **Duration**: ~280ms total execution time
-- **Use Case**: Validate normal choreography flow
+### successful-order.trace.json
+Internal CE format — Happy path scenario
+- Flow: Catalogue → Cart → Orders → Payment → Shipping
+- Services: catalogue, cart, orders, payment, shipping
+- Result: ✅ All services respond successfully
+- Use Case: Works out-of-the-box with CE CLI
 
-### `failed-payment.json` 
-**Error Scenario**: Order fails due to payment decline
-- **Flow**: Catalogue Browse → Add to Cart → Create Order → Payment Decline
-- **Services**: catalogue, cart, orders, payment
-- **Result**: ❌ Payment service returns 402 (insufficient funds)
-- **Duration**: ~150ms (shorter due to early termination)
-- **Use Case**: Validate error handling and circuit breaker patterns
+### failed-payment.trace.json
+Internal CE format — Error scenario
+- Flow: Catalogue → Cart → Orders → Payment (declined)
+- Services: catalogue, cart, orders, payment
+- Result: ❌ Payment service returns 402 (insufficient funds)
+- Use Case: Validate error handling and gating
 
-## Trace Format
+### successful-order.json, failed-payment.json
+Jaeger/OTLP-style reference samples (for conversion or comparison).
 
-These traces follow the **OpenTelemetry/Jaeger JSON format**:
+## Trace Formats
+
+The CE demo uses a simple internal JSON format for maximum portability. Example:
 
 ```json
 {
-  "traceID": "unique-trace-identifier",
   "spans": [
     {
-      "traceID": "matching-trace-id", 
-      "spanID": "unique-span-id",
-      "parentSpanID": "parent-span-id",
-      "operationName": "HTTP method + endpoint",
-      "startTime": "microseconds since epoch",
-      "duration": "span duration in microseconds",
-      "tags": {
-        "http.method": "GET|POST|PUT|DELETE",
-        "http.url": "full request URL",
-        "http.status_code": "HTTP response code",
-        "component": "service identifier"
-      },
-      "process": {
-        "serviceName": "microservice name",
-        "tags": {
-          "hostname": "container/pod identifier"
-        }
-      },
-      "logs": [
-        {
-          "timestamp": "log timestamp",
-          "fields": {
-            "event": "business event name",
-            "key": "value pairs"
-          }
-        }
-      ]
+      "name": "createOrder",
+      "service": "orders",
+      "startNanos": 1693910000000000000,
+      "endNanos": 1693910000100000000,
+      "attributes": {
+        "http.status_code": 201,
+        "response.body": {"id": "ORD-1"}
+      }
     }
   ]
 }
 ```
 
+We also include Jaeger/OTLP-style samples for reference.
+
 ## How Traces Are Used
 
-1. **Contract Discovery**: `choreoatlas discover` analyzes these traces to generate:
-   - **ServiceSpec files** (.servicespec.yaml) for each service
-   - **FlowSpec files** (.flowspec.yaml) for orchestration flows
-
-2. **Choreography Validation**: `choreoatlas validate` checks:
-   - Service-level semantic contracts (preconditions/postconditions)
-   - Temporal ordering of service calls
-   - Causal relationships and dependencies  
-   - Error propagation patterns
-
-3. **Compliance Reporting**: HTML reports show:
-   - Contract adherence per service
-   - Flow execution timeline
-   - Error analysis and coverage metrics
+1. Contract Discovery: `choreoatlas discover` generates FlowSpec + ServiceSpec.
+2. Choreography Validation: `choreoatlas validate` checks semantics, temporal ordering, and causality.
+3. Reporting: HTML/JUnit/JSON outputs for humans and CI systems.
 
 ## Real-World Usage
 
-In production, you would:
+- Export traces from Jaeger/Zipkin/OTLP, convert or map to the internal format.
+- Gate deployments by running `choreoatlas ci-gate` in CI.
+- Record baselines to track coverage/conditions over time.
 
-1. **Export from APM**: Extract traces from Jaeger, Zipkin, or OTLP exporters
-2. **Filter by Business Flow**: Focus on critical user journeys
-3. **Continuous Validation**: Run `choreoatlas validate` in CI/CD pipelines
-4. **Baseline Establishment**: Track contract evolution over time
-
-## Next Steps
-
-- Run `make demo` to see these traces in action
-- Compare successful vs failed scenarios in generated reports
-- Try capturing your own traces with `docker-compose --profile load-test up`

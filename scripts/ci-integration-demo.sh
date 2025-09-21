@@ -35,15 +35,21 @@ jobs:
         # curl -L https://github.com/choreoatlas2025/cli/releases/latest/download/choreoatlas-linux-amd64.tar.gz | tar xz
         # sudo mv choreoatlas /usr/local/bin/
         
-    - name: Validate Service Contracts
+    - name: CI Gate (lint + validate)
       run: |
+        source ~/.bashrc
+        choreoatlas ci-gate \
+          --flow contracts/flows/order-flow.flowspec.yaml \
+          --trace traces/successful-order.trace.json
+        # Also generate artifacts for the run
         choreoatlas validate \
-          --servicespec contracts/services/ \
-          --flowspec contracts/flows/order-flow.flowspec.yaml \
-          --trace traces/successful-order.json \
-          --report-html reports/pr-validation.html \
-          --report-junit reports/junit.xml \
-          --edition ce
+          --flow contracts/flows/order-flow.flowspec.yaml \
+          --trace traces/successful-order.trace.json \
+          --report-format junit --report-out reports/junit.xml
+        choreoatlas validate \
+          --flow contracts/flows/order-flow.flowspec.yaml \
+          --trace traces/successful-order.trace.json \
+          --report-format html --report-out reports/pr-validation.html
           
     - name: Upload Validation Report
       uses: actions/upload-artifact@v4
@@ -79,16 +85,16 @@ EOF
 
 echo "✅ Created .github/workflows/choreoatlas-validation.yml"
 
-# Create example pre-commit hook
+# Create example pre-commit hook (lint FlowSpec)
 cat > .pre-commit-config.yaml << 'EOF'
 # ChoreoAtlas CLI Pre-commit Hooks
 repos:
   - repo: local
     hooks:
       - id: choreoatlas-lint
-        name: Validate ServiceSpec + FlowSpec contracts
+        name: Lint FlowSpec
         entry: choreoatlas
-        args: ['validate', '--servicespec', 'contracts/services/', '--flowspec', 'contracts/flows/', '--lint-only']
+        args: ['lint', '--flow', 'contracts/flows/order-flow.flowspec.yaml']
         language: system
         files: '\.(flowspec|servicespec)\.ya?ml$'
         pass_filenames: false
@@ -103,20 +109,15 @@ cat >> Makefile << 'EOF'
 ci-validate:
 	@echo "🔍 Running CI validation..."
 	choreoatlas validate \
-		--servicespec contracts/services/ \
-		--flowspec contracts/flows/order-flow.flowspec.yaml \
-		--trace traces/successful-order.json \
-		--report-junit reports/junit.xml \
-		--edition ce
+		--flow contracts/flows/order-flow.flowspec.yaml \
+		--trace traces/successful-order.trace.json \
+		--report-format junit --report-out reports/junit.xml
 		
 ci-gate:
 	@echo "🚪 Running CI gate checks..."
 	choreoatlas ci-gate \
-		--servicespec contracts/services/ \
-		--flowspec contracts/flows/order-flow.flowspec.yaml \
-		--trace traces/successful-order.json \
-		--baseline baseline.yml \
-		--edition ce
+		--flow contracts/flows/order-flow.flowspec.yaml \
+		--trace traces/successful-order.trace.json
 
 pre-commit-install:
 	@echo "🪝 Installing pre-commit hooks..."
@@ -127,58 +128,17 @@ EOF
 
 echo "✅ Added CI targets to Makefile"
 
-# Create baseline configuration example
-cat > baseline.yml << 'EOF'
-# ChoreoAtlas Baseline Configuration
-# Used to define quality gates and thresholds for CI/CD
+# Create an example baseline (using CLI)
+if command -v choreoatlas &> /dev/null; then
+  choreoatlas baseline record \
+    --flow contracts/flows/order-flow.flowspec.yaml \
+    --trace traces/successful-order.trace.json \
+    --out baseline.json || true
+else
+  echo '{"note":"Run choreoatlas baseline record to produce baseline.json"}' > baseline.json
+fi
 
-version: v1
-kind: Baseline
-
-metadata:
-  name: sockshop-choreography-baseline
-  description: Quality gates for Sock Shop microservices choreography
-
-thresholds:
-  coverage:
-    minimum: 80  # Require 80% service interaction coverage
-    target: 95   # Target 95% coverage
-    
-  performance:
-    max_duration_ms: 500  # End-to-end flow should complete within 500ms
-    p99_duration_ms: 1000 # 99th percentile under 1 second
-    
-  reliability:
-    success_rate: 0.99    # 99% success rate required
-    error_budget: 0.01    # 1% error budget
-    
-quality_gates:
-  - name: "Critical Path Validation"
-    description: "Core order flow must always be validated"
-    required_flows:
-      - "order-flow"
-    required_services:
-      - "catalogue"
-      - "cart" 
-      - "orders"
-      - "payment"
-      
-  - name: "Error Handling"
-    description: "Error scenarios must be tested"
-    required_traces:
-      - "successful-order.json"
-      - "failed-payment.json"
-
-notifications:
-  slack:
-    webhook_url: "${SLACK_WEBHOOK_URL}"
-    channel: "#platform-engineering"
-    
-  teams:
-    webhook_url: "${TEAMS_WEBHOOK_URL}"
-EOF
-
-echo "✅ Created baseline.yml configuration"
+echo "✅ Created baseline.json (example)"
 
 echo ""
 echo "🎯 CI Integration Demo Complete!"
@@ -186,7 +146,7 @@ echo ""
 echo "📋 Created files:"
 echo "   • .github/workflows/choreoatlas-validation.yml - GitHub Actions workflow"
 echo "   • .pre-commit-config.yaml - Pre-commit hook configuration"
-echo "   • baseline.yml - Quality gates and thresholds"
+echo "   • baseline.json - Baseline recorded from example trace (if CLI available)"
 echo "   • Enhanced Makefile with CI targets"
 echo ""
 echo "🚀 Next steps to integrate with your project:"

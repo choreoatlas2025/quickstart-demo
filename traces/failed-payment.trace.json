@@ -1,0 +1,54 @@
+{
+  "spans": [
+    {
+      "name": "getCatalogue",
+      "service": "catalogue",
+      "startNanos": 1694787700000000000,
+      "endNanos": 1694787700042000000,
+      "attributes": {
+        "http.status_code": 200,
+        "response.body": [
+          {"id": "sock123", "name": "Wool Socks"}
+        ]
+      }
+    },
+    {
+      "name": "addToCart",
+      "service": "cart",
+      "startNanos": 1694787700050000000,
+      "endNanos": 1694787700078000000,
+      "attributes": {
+        "http.status_code": 201,
+        "response.body": {
+          "itemID": "sock456",
+          "quantity": 1
+        }
+      }
+    },
+    {
+      "name": "createOrder",
+      "service": "orders",
+      "startNanos": 1694787700085000000,
+      "endNanos": 1694787700130000000,
+      "attributes": {
+        "http.status_code": 422,
+        "response.body": {
+          "error": "payment authorization failed"
+        }
+      }
+    },
+    {
+      "name": "authorizePayment",
+      "service": "payment",
+      "startNanos": 1694787700100000000,
+      "endNanos": 1694787700125000000,
+      "attributes": {
+        "http.status_code": 402,
+        "response.body": {
+          "authorised": false,
+          "message": "insufficient funds"
+        }
+      }
+    }
+  ]
+}

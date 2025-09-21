@@ -33,7 +33,8 @@ else
     EXECUTION_METHOD="fallback"
 fi
 
-if [ ! -f "contracts/flows/order-flow.flowspec.yaml" ]; then
+# Ensure at least one FlowSpec exists (prefer graph)
+if [ ! -f "contracts/flows/order-flow.graph.flowspec.yaml" ] && [ ! -f "contracts/flows/order-flow.flowspec.yaml" ]; then
     echo "❌ FlowSpec contract not found. Run './scripts/generate-contracts.sh' first."
     exit 1
 fi
@@ -203,27 +204,40 @@ case $EXECUTION_METHOD in
         # Determine paths based on execution method
         if [ "$EXECUTION_METHOD" = "docker" ]; then
             SERVICESPEC_PATH="/workspace/contracts/services/"
-            FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.flowspec.yaml"
-            TRACE_PATH="/workspace/traces/successful-order.json"
+            # Prefer graph FlowSpec if present
+            if [ -f "/workspace/contracts/flows/order-flow.graph.flowspec.yaml" ]; then
+              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.graph.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.flowspec.yaml"
+            fi
+            TRACE_PATH="/workspace/traces/successful-order.trace.json"
             REPORT_HTML_PATH="/workspace/reports/successful-order-report.html"
             REPORT_JSON_PATH="/workspace/reports/successful-order-report.json"
         else
             SERVICESPEC_PATH="contracts/services/"
-            FLOWSPEC_PATH="contracts/flows/order-flow.flowspec.yaml"
-            TRACE_PATH="traces/successful-order.json"
+            # Prefer graph FlowSpec if present
+            if [ -f "contracts/flows/order-flow.graph.flowspec.yaml" ]; then
+              FLOWSPEC_PATH="contracts/flows/order-flow.graph.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="contracts/flows/order-flow.flowspec.yaml"
+            fi
+            TRACE_PATH="traces/successful-order.trace.json"
             REPORT_HTML_PATH="reports/successful-order-report.html"
             REPORT_JSON_PATH="reports/successful-order-report.json"
         fi
         
         # Attempt validation
-        if $CHOREOATLAS_CMD validate \
-            --servicespec "$SERVICESPEC_PATH" \
-            --flowspec "$FLOWSPEC_PATH" \
+    # First, generate HTML report
+    if $CHOREOATLAS_CMD validate \
+            --flow "$FLOWSPEC_PATH" \
             --trace "$TRACE_PATH" \
-            --report-html "$REPORT_HTML_PATH" \
-            --report-json "$REPORT_JSON_PATH" \
-            --edition ce 2>/dev/null; then
+            --report-format html --report-out "$REPORT_HTML_PATH" 2>/dev/null; then
             echo "✅ Successful order validation: PASSED"
+            # Optionally also generate JSON report
+            $CHOREOATLAS_CMD validate \
+              --flow "$FLOWSPEC_PATH" \
+              --trace "$TRACE_PATH" \
+              --report-format json --report-out "$REPORT_JSON_PATH" 2>/dev/null || true
         else
             echo "⚠️  Validation command failed or not fully implemented yet"
             echo "📋 Creating mock validation report for demo purposes..."
@@ -244,27 +258,37 @@ case $EXECUTION_METHOD in
         # Determine paths based on execution method
         if [ "$EXECUTION_METHOD" = "docker" ]; then
             SERVICESPEC_PATH="/workspace/contracts/services/"
-            FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.flowspec.yaml"
-            TRACE_PATH="/workspace/traces/failed-payment.json"
+            if [ -f "/workspace/contracts/flows/order-flow.graph.flowspec.yaml" ]; then
+              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.graph.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.flowspec.yaml"
+            fi
+            TRACE_PATH="/workspace/traces/failed-payment.trace.json"
             REPORT_HTML_PATH="/workspace/reports/failed-payment-report.html"
             REPORT_JSON_PATH="/workspace/reports/failed-payment-report.json"
         else
             SERVICESPEC_PATH="contracts/services/"
-            FLOWSPEC_PATH="contracts/flows/order-flow.flowspec.yaml"
-            TRACE_PATH="traces/failed-payment.json"
+            if [ -f "contracts/flows/order-flow.graph.flowspec.yaml" ]; then
+              FLOWSPEC_PATH="contracts/flows/order-flow.graph.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="contracts/flows/order-flow.flowspec.yaml"
+            fi
+            TRACE_PATH="traces/failed-payment.trace.json"
             REPORT_HTML_PATH="reports/failed-payment-report.html"
             REPORT_JSON_PATH="reports/failed-payment-report.json"
         fi
         
         # Attempt validation of failure scenario
+        # Generate HTML, and optionally JSON, for the failure scenario
         if $CHOREOATLAS_CMD validate \
-            --servicespec "$SERVICESPEC_PATH" \
-            --flowspec "$FLOWSPEC_PATH" \
+            --flow "$FLOWSPEC_PATH" \
             --trace "$TRACE_PATH" \
-            --report-html "$REPORT_HTML_PATH" \
-            --report-json "$REPORT_JSON_PATH" \
-            --edition ce 2>/dev/null; then
+            --report-format html --report-out "$REPORT_HTML_PATH" 2>/dev/null; then
             echo "✅ Failed payment validation: PASSED (error handling validated)"
+            $CHOREOATLAS_CMD validate \
+              --flow "$FLOWSPEC_PATH" \
+              --trace "$TRACE_PATH" \
+              --report-format json --report-out "$REPORT_JSON_PATH" 2>/dev/null || true
         else
             echo "⚠️  Validation detected expected choreography violations"
             echo "📋 Creating mock failure analysis report..."
@@ -283,19 +307,9 @@ find reports -name "*.html" | while read -r report; do
     echo "   🌐 $(basename "$report"): file://$(realpath "$report")"
 done
 
-# Try to open the main report
-if command -v open &> /dev/null; then
-    echo ""
-    echo "🚀 Opening validation report..."
-    open reports/successful-order-report.html
-elif command -v xdg-open &> /dev/null; then
-    echo ""
-    echo "🚀 Opening validation report..."
-    xdg-open reports/successful-order-report.html
-else
-    echo ""
-    echo "💡 Open reports/successful-order-report.html in your browser to view results"
-fi
+# Do not auto-open browsers to reduce friction for first-time users
+echo ""
+echo "💡 Open reports/successful-order-report.html in your browser to view results"
 
 echo ""
 echo "🎯 Demo complete! Key takeaways:"

@@ -1,7 +1,7 @@
 # ChoreoAtlas CLI Quickstart Demo Makefile
 # One-command automation for 10-minute demo experience
 
-.PHONY: demo offline-demo live-demo ci-demo setup clean help
+.PHONY: demo offline-demo live-demo ci-demo setup clean help convert-trace
 
 # Default target - complete offline demo
 demo: offline-demo
@@ -12,7 +12,7 @@ offline-demo: setup
 	@echo "📁 Using pre-recorded traces from Sock Shop microservices"
 	@./scripts/generate-contracts.sh
 	@./scripts/validate-flow.sh
-	@echo "✅ Demo complete! Check reports/validation-report.html"
+	@echo "✅ Demo complete! Check reports/ (e.g. successful-order-report.html, validation-report.html)"
 	@echo "💡 Try: make live-demo for full experience with running services"
 
 # Complete demo with live services (10 minutes)  
@@ -27,7 +27,7 @@ live-demo: setup
 	@./scripts/validate-flow.sh
 	@echo "🛑 Stopping services..."
 	@docker-compose down
-	@echo "✅ Demo complete! Check reports/validation-report.html"
+	@echo "✅ Demo complete! Check reports/ (e.g. report.html, junit.xml)"
 
 # CI integration demo
 ci-demo: setup
@@ -61,5 +61,15 @@ help:
 	@echo "  setup        - Initialize demo environment"
 	@echo "  clean        - Clean up generated files"
 	@echo "  help         - Show this help"
+	@echo "  convert-trace IN=... OUT=... [MAP=demo] - Convert Jaeger/OTLP JSON to CE internal format"
 	@echo ""
 	@echo "Quick start: make demo"
+
+# Convert Jaeger/OTLP JSON to CE internal format
+convert-trace:
+	@[ -n "$(IN)" ] || (echo "❌ Please provide IN=path/to/input.json" && exit 1)
+	@[ -n "$(OUT)" ] || (echo "❌ Please provide OUT=path/to/output.trace.json" && exit 1)
+	@echo "🔄 Converting $(IN) -> $(OUT) ..."
+	@chmod +x scripts/convert-trace.py
+	@python3 scripts/convert-trace.py $(IN) -o $(OUT) $(if $(MAP),--map $(MAP),)
+	@echo "✅ Done. Use with: choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml --trace $(OUT)"

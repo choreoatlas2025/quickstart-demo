@@ -1,0 +1,40 @@
+apiVersion: flowspec.choreoatlas.io/v1
+kind: FlowSpec
+metadata:
+  name: sockshop-order-flow-graph
+  version: "1.0.0"
+
+info:
+  title: "Sock Shop Order Fulfillment Flow (Graph/DAG)"
+  description: "End-to-end order processing choreography (graph format)"
+  version: "1.0.0"
+
+services:
+  catalogue:
+    spec: "../services/catalogue.servicespec.yaml"
+  cart:
+    spec: "../services/cart.servicespec.yaml"
+  orders:
+    spec: "../services/orders.servicespec.yaml"
+  payment:
+    spec: "../services/payment.servicespec.yaml"
+  shipping:
+    spec: "../services/shipping.servicespec.yaml"
+
+graph:
+  nodes:
+    - id: "browseCatalogue"
+      call: "catalogue.getCatalogue"
+    - id: "addToCart"
+      call: "cart.addToCart"
+      depends: ["browseCatalogue"]
+    - id: "createOrder"
+      call: "orders.createOrder"
+      depends: ["addToCart"]
+    - id: "authorizePayment"
+      call: "payment.authorizePayment"
+      depends: ["createOrder"]
+    - id: "createShipment"
+      call: "shipping.createShipment"
+      depends: ["authorizePayment"]
+

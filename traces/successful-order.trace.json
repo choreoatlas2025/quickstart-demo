@@ -1,0 +1,70 @@
+{
+  "spans": [
+    {
+      "name": "getCatalogue",
+      "service": "catalogue",
+      "startNanos": 1694787600000000000,
+      "endNanos": 1694787600045000000,
+      "attributes": {
+        "http.status_code": 200,
+        "response.body": [
+          {"id": "sock123", "name": "Wool Socks"},
+          {"id": "sock456", "name": "Running Socks"}
+        ]
+      }
+    },
+    {
+      "name": "addToCart",
+      "service": "cart",
+      "startNanos": 1694787600050000000,
+      "endNanos": 1694787600082000000,
+      "attributes": {
+        "http.status_code": 201,
+        "response.body": {
+          "itemID": "sock123",
+          "quantity": 2
+        }
+      }
+    },
+    {
+      "name": "createOrder",
+      "service": "orders",
+      "startNanos": 1694787600090000000,
+      "endNanos": 1694787600215000000,
+      "attributes": {
+        "http.status_code": 201,
+        "response.body": {
+          "id": "order789",
+          "total": 31.98
+        }
+      }
+    },
+    {
+      "name": "authorizePayment",
+      "service": "payment",
+      "startNanos": 1694787600110000000,
+      "endNanos": 1694787600188000000,
+      "attributes": {
+        "http.status_code": 200,
+        "response.body": {
+          "authorised": true,
+          "authorizationID": "auth456"
+        }
+      }
+    },
+    {
+      "name": "createShipment",
+      "service": "shipping",
+      "startNanos": 1694787600195000000,
+      "endNanos": 1694787600251000000,
+      "attributes": {
+        "http.status_code": 201,
+        "response.body": {
+          "shipmentID": "ship321",
+          "trackingNumber": "TRACK789456123",
+          "estimatedDelivery": "2024-09-15"
+        }
+      }
+    }
+  ]
+}

@@ -36,7 +36,7 @@ fi
 # Ensure directories exist
 mkdir -p contracts/services contracts/flows
 
-echo "📊 Discovering contracts from successful order trace..."
+echo "📊 Discovering contracts from successful order trace (CE format)..."
 
 case $EXECUTION_METHOD in
     "native"|"docker")
@@ -49,10 +49,9 @@ case $EXECUTION_METHOD in
             if [ "$EXECUTION_METHOD" = "docker" ]; then
                 # For Docker, we need to adjust paths to container paths
                 if $CHOREOATLAS_CMD discover \
-                    --trace /workspace/traces/successful-order.json \
-                    --out-servicespec /workspace/contracts/services/ \
-                    --out-flowspec /workspace/contracts/flows/order-flow.flowspec.yaml \
-                    --format yaml 2>/dev/null; then
+                    --trace /workspace/traces/successful-order.trace.json \
+                    --out /workspace/contracts/flows/order-flow.flowspec.yaml \
+                    --out-services /workspace/contracts/services 2>/dev/null; then
                     echo "✅ ServiceSpec contracts generated in contracts/services/"
                     echo "✅ FlowSpec contract generated: contracts/flows/order-flow.flowspec.yaml"
                 else
@@ -62,10 +61,9 @@ case $EXECUTION_METHOD in
             else
                 # Native CLI with local paths
                 if $CHOREOATLAS_CMD discover \
-                    --trace traces/successful-order.json \
-                    --out-servicespec contracts/services/ \
-                    --out-flowspec contracts/flows/order-flow.flowspec.yaml \
-                    --format yaml 2>/dev/null; then
+                    --trace traces/successful-order.trace.json \
+                    --out contracts/flows/order-flow.flowspec.yaml \
+                    --out-services contracts/services 2>/dev/null; then
                     echo "✅ ServiceSpec contracts generated in contracts/services/"
                     echo "✅ FlowSpec contract generated: contracts/flows/order-flow.flowspec.yaml"
                 else
