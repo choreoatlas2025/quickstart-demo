@@ -42,11 +42,11 @@ jobs:
           --flow contracts/flows/order-flow.flowspec.yaml \
           --trace traces/successful-order.trace.json
         # Also generate artifacts for the run
-        choreoatlas validate \
+        choreoatlas run validate \
           --flow contracts/flows/order-flow.flowspec.yaml \
           --trace traces/successful-order.trace.json \
           --report-format junit --report-out reports/junit.xml
-        choreoatlas validate \
+        choreoatlas run validate \
           --flow contracts/flows/order-flow.flowspec.yaml \
           --trace traces/successful-order.trace.json \
           --report-format html --report-out reports/pr-validation.html
@@ -108,7 +108,7 @@ cat >> Makefile << 'EOF'
 # CI/CD Integration targets
 ci-validate:
 	@echo "🔍 Running CI validation..."
-	choreoatlas validate \
+	choreoatlas run validate \
 		--flow contracts/flows/order-flow.flowspec.yaml \
 		--trace traces/successful-order.trace.json \
 		--report-format junit --report-out reports/junit.xml

@@ -46,8 +46,8 @@ We also include Jaeger/OTLP-style samples for reference.
 
 ## How Traces Are Used
 
-1. Contract Discovery: `choreoatlas discover` generates FlowSpec + ServiceSpec.
-2. Choreography Validation: `choreoatlas validate` checks semantics, temporal ordering, and causality.
+1. Contract Discovery: `choreoatlas spec discover` generates FlowSpec + ServiceSpec.
+2. Choreography Validation: `choreoatlas run validate` checks semantics, temporal ordering, and causality.
 3. Reporting: HTML/JUnit/JSON outputs for humans and CI systems.
 
 ## Real-World Usage
@@ -55,4 +55,3 @@ We also include Jaeger/OTLP-style samples for reference.
 - Export traces from Jaeger/Zipkin/OTLP, convert or map to the internal format.
 - Gate deployments by running `choreoatlas ci-gate` in CI.
 - Record baselines to track coverage/conditions over time.
-

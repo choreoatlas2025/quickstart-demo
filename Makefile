@@ -72,4 +72,4 @@ convert-trace:
 	@echo "🔄 Converting $(IN) -> $(OUT) ..."
 	@chmod +x scripts/convert-trace.py
 	@python3 scripts/convert-trace.py $(IN) -o $(OUT) $(if $(MAP),--map $(MAP),)
-	@echo "✅ Done. Use with: choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml --trace $(OUT)"
+	@echo "✅ Done. Use with: choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml --trace $(OUT)"

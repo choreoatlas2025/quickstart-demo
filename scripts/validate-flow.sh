@@ -113,8 +113,8 @@ create_mock_report() {
         <ul style="list-style-type: decimal; margin-left: 20px;">
             <li style="list-style-type: decimal;">Install ChoreoAtlas CLI: <code>brew tap choreoatlas2025/tap && brew install choreoatlas</code></li>
             <li style="list-style-type: decimal;">Export traces from your observability platform</li>
-            <li style="list-style-type: decimal;">Generate contracts: <code>choreoatlas discover --trace your-trace.json</code></li>
-            <li style="list-style-type: decimal;">Set up CI validation: <code>choreoatlas validate</code> in your pipeline</li>
+            <li style="list-style-type: decimal;">Generate contracts: <code>choreoatlas spec discover --trace your-trace.json</code></li>
+            <li style="list-style-type: decimal;">Set up CI validation: <code>choreoatlas run validate</code> in your pipeline</li>
         </ul>
     </div>
 </body>
@@ -204,22 +204,22 @@ case $EXECUTION_METHOD in
         # Determine paths based on execution method
         if [ "$EXECUTION_METHOD" = "docker" ]; then
             SERVICESPEC_PATH="/workspace/contracts/services/"
-            # Prefer graph FlowSpec if present
-            if [ -f "/workspace/contracts/flows/order-flow.graph.flowspec.yaml" ]; then
-              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.graph.flowspec.yaml"
-            else
+            # Prefer sequential FlowSpec (flow) in CE; fall back to graph
+            if [ -f "/workspace/contracts/flows/order-flow.flowspec.yaml" ]; then
               FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.graph.flowspec.yaml"
             fi
             TRACE_PATH="/workspace/traces/successful-order.trace.json"
             REPORT_HTML_PATH="/workspace/reports/successful-order-report.html"
             REPORT_JSON_PATH="/workspace/reports/successful-order-report.json"
         else
             SERVICESPEC_PATH="contracts/services/"
-            # Prefer graph FlowSpec if present
-            if [ -f "contracts/flows/order-flow.graph.flowspec.yaml" ]; then
-              FLOWSPEC_PATH="contracts/flows/order-flow.graph.flowspec.yaml"
-            else
+            # Prefer sequential FlowSpec (flow) in CE; fall back to graph
+            if [ -f "contracts/flows/order-flow.flowspec.yaml" ]; then
               FLOWSPEC_PATH="contracts/flows/order-flow.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="contracts/flows/order-flow.graph.flowspec.yaml"
             fi
             TRACE_PATH="traces/successful-order.trace.json"
             REPORT_HTML_PATH="reports/successful-order-report.html"
@@ -258,20 +258,22 @@ case $EXECUTION_METHOD in
         # Determine paths based on execution method
         if [ "$EXECUTION_METHOD" = "docker" ]; then
             SERVICESPEC_PATH="/workspace/contracts/services/"
-            if [ -f "/workspace/contracts/flows/order-flow.graph.flowspec.yaml" ]; then
-              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.graph.flowspec.yaml"
-            else
+            # Prefer sequential FlowSpec (flow) in CE; fall back to graph
+            if [ -f "/workspace/contracts/flows/order-flow.flowspec.yaml" ]; then
               FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="/workspace/contracts/flows/order-flow.graph.flowspec.yaml"
             fi
             TRACE_PATH="/workspace/traces/failed-payment.trace.json"
             REPORT_HTML_PATH="/workspace/reports/failed-payment-report.html"
             REPORT_JSON_PATH="/workspace/reports/failed-payment-report.json"
         else
             SERVICESPEC_PATH="contracts/services/"
-            if [ -f "contracts/flows/order-flow.graph.flowspec.yaml" ]; then
-              FLOWSPEC_PATH="contracts/flows/order-flow.graph.flowspec.yaml"
-            else
+            # Prefer sequential FlowSpec (flow) in CE; fall back to graph
+            if [ -f "contracts/flows/order-flow.flowspec.yaml" ]; then
               FLOWSPEC_PATH="contracts/flows/order-flow.flowspec.yaml"
+            else
+              FLOWSPEC_PATH="contracts/flows/order-flow.graph.flowspec.yaml"
             fi
             TRACE_PATH="traces/failed-payment.trace.json"
             REPORT_HTML_PATH="reports/failed-payment-report.html"

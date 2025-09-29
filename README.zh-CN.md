@@ -46,8 +46,8 @@ make demo
 ├── contracts/                  # 生成或模板化的契约
 │   ├── services/               # ServiceSpec（*.servicespec.yaml）
 │   └── flows/                  # FlowSpec（顺序式 + 图/DAG）
-│       ├── order-flow.flowspec.yaml         # 顺序式（legacy）
-│       └── order-flow.graph.flowspec.yaml   # 图/DAG（推荐）
+│       ├── order-flow.flowspec.yaml         # 顺序式（CE 优先）
+│       └── order-flow.graph.flowspec.yaml   # 图/DAG（可选）
 ├── reports/                    # 生成的报告
 └── scripts/                    # 演示脚本
 ```
@@ -60,7 +60,7 @@ make demo
 ## 分步操作
 ### 1) 根据 trace 发现契约
 ```bash
-choreoatlas discover \
+choreoatlas spec discover \
   --trace traces/successful-order.trace.json \
   --out contracts/flows/order-flow.flowspec.yaml \
   --out-services contracts/services
@@ -69,22 +69,22 @@ choreoatlas discover \
 ### 2) 校验编排并生成报告
 ```bash
 # HTML 报告
-choreoatlas validate \
-  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate \
+  --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/validation-report.html
 
 # 可选：JSON 报告
-choreoatlas validate \
-  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate \
+  --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format json --report-out reports/validation-report.json
 ```
 
 ### 3) 失败场景分析
 ```bash
-choreoatlas validate \
-  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate \
+  --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/failed-payment.trace.json \
   --report-format html --report-out reports/failure-analysis.html
 ```
@@ -109,7 +109,7 @@ python3 scripts/convert-trace.py traces/successful-order.json \
   -o traces/successful-order.trace.json --map demo
 
 # 然后执行校验
-choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/from-converted.html
 ```
@@ -139,11 +139,11 @@ jobs:
       - name: Reports
         run: |
           source $BASH_ENV
-          choreoatlas validate \
+          choreoatlas run validate \
             --flow contracts/flows/order-flow.flowspec.yaml \
             --trace traces/successful-order.trace.json \
             --report-format junit --report-out reports/junit.xml
-          choreoatlas validate \
+          choreoatlas run validate \
             --flow contracts/flows/order-flow.flowspec.yaml \
             --trace traces/successful-order.trace.json \
             --report-format html --report-out reports/report.html
@@ -155,7 +155,7 @@ jobs:
 
 ## 小贴士
 - 推荐将 `alias ca=choreoatlas`，提升日常操作效率。
-- FlowSpec 支持顺序式 `flow:` 与 DAG `graph:` 两种格式；建议使用 `graph:`，本示例保留 `flow:` 兼容。
+- FlowSpec 支持顺序式 `flow:` 与 DAG `graph:` 两种格式；CE 以顺序式 `flow:` 为主，`graph:` 作为可选进阶格式。
 - CE 完全离线、零遥测；trace 使用内部 JSON 结构（本仓库已提供样例）。
 
 —— ChoreoAtlas CLI：以契约即代码映射、校验并引导你的服务编排

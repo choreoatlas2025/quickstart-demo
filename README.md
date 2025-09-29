@@ -6,6 +6,11 @@ This quickstart gives you a 2–10 minute, developer‑friendly journey using th
 
 中文文档请见 README.zh-CN.md
 
+[![Website](https://img.shields.io/badge/website-choreoatlas.com-0b72e7?logo=firefox-browser&logoColor=white)](https://choreoatlas.com)
+[![Docs](https://img.shields.io/badge/docs-choreoatlas.io-0b72e7?logo=readthedocs&logoColor=white)](https://choreoatlas.io)
+
+Quick links: [Website](https://choreoatlas.com) · [Docs](https://choreoatlas.io) · [Pricing](https://choreoatlas.com/pricing) · [Contact](https://choreoatlas.com/contact)
+
 ## 🚀 Quick Start (10 minutes)
 
 ### Prerequisites
@@ -75,8 +80,8 @@ The demo simulates an e-commerce microservices system:
 ├── contracts/                 # Contracts (generated + curated)
 │   ├── services/              # ServiceSpec files (.servicespec.yaml)
 │   └── flows/                 # FlowSpec files (sequential + graph)
-│       ├── order-flow.flowspec.yaml         # sequential (legacy)
-│       └── order-flow.graph.flowspec.yaml   # graph/DAG (preferred)
+│       ├── order-flow.flowspec.yaml         # sequential (CE primary)
+│       └── order-flow.graph.flowspec.yaml   # graph/DAG (optional)
 ├── reports/                   # Generated HTML reports
 └── scripts/                   # Demo automation scripts
     ├── start-services.sh
@@ -113,7 +118,7 @@ make ci-demo
 
 ```bash
 # Generate FlowSpec and ServiceSpecs from a trace (CE format)
-choreoatlas discover \
+choreoatlas spec discover \
   --trace traces/successful-order.trace.json \
   --out contracts/flows/order-flow.flowspec.yaml \
   --out-services contracts/services
@@ -125,14 +130,14 @@ choreoatlas discover \
 
 ```bash
 # Validate actual execution against contracts
-choreoatlas validate \
-  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate \
+  --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/validation-report.html
 
 # Optional: also emit JSON or JUnit
-choreoatlas validate \
-  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate \
+  --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format json --report-out reports/validation-report.json
 ```
@@ -155,8 +160,8 @@ Test different failure modes:
 
 ```bash
 # Test payment failure scenario
-choreoatlas validate \
-  --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate \
+  --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/failed-payment.trace.json \
   --report-format html --report-out reports/failure-analysis.html
 ```
@@ -166,7 +171,7 @@ choreoatlas validate \
 A ready-to-run workflow is included: `.github/workflows/choreoatlas-validation.yml`.
 - Runs `ci-gate` (lint + validate).
 - Generates `reports/junit.xml` and `reports/report.html`.
-- Prefers `order-flow.graph.flowspec.yaml` when present; falls back to the sequential file.
+- Prefers `order-flow.flowspec.yaml` (sequential, CE primary); falls back to the graph file when present.
 
 ### Trace Conversion (Jaeger/OTLP → CE)
 
@@ -184,7 +189,7 @@ python3 scripts/convert-trace.py traces/successful-order.json \
   -o traces/successful-order.trace.json --map demo
 
 # Then validate
-choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml \
+choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/from-converted.html
 ```
@@ -196,7 +201,7 @@ Notes:
 
 ## 🎓 Next Steps
 
-1. **Apply to Your Services**: Use `choreoatlas discover` with your own traces
+1. **Apply to Your Services**: Use `choreoatlas spec discover` with your own traces
 2. **Set Up CI Gates**: Add choreography validation to your pipeline  
 3. **Explore Pro Features**: Advanced baselines, trend analysis, privacy controls
 4. **Join Community**: https://github.com/choreoatlas2025/cli/discussions

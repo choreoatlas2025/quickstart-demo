@@ -241,7 +241,7 @@ def main():
 
     save_json(args.out, out)
     print(f"✅ Converted: {args.input} -> {args.out}")
-    print("   Hint: choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml --trace", args.out)
+    print("   Hint: choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml --trace", args.out)
 
 
 if __name__ == '__main__':
