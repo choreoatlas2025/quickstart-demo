@@ -121,4 +121,4 @@ choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml \
 
 ## CI 集成
 
-仓库中的 [GitHub Actions 工作流](.github/workflows/choreoatlas-validation.yml) 使用已发布的 CE 镜像对图式 FlowSpec 执行门禁与真实报告生成。
+仓库中的 [GitHub Actions 工作流](.github/workflows/choreoatlas-validation.yml) 使用已发布的 CE 镜像执行同一条 `make demo` 通路，并上传真实报告。

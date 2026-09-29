@@ -169,9 +169,8 @@ choreoatlas validate \
 ### CI Integration
 
 A ready-to-run workflow is included: `.github/workflows/choreoatlas-validation.yml`.
-- Runs `ci-gate` (lint + validate).
-- Generates `reports/junit.xml` and `reports/report.html`.
-- Uses the curated graph FlowSpec when present.
+- Runs the same `make demo` command shown above.
+- Uploads the two real HTML reports for review.
 
 ### Trace Conversion (Jaeger/OTLP → CE)
 
