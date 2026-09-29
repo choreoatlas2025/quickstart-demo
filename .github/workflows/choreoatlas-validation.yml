@@ -8,7 +8,7 @@ jobs:
   validate-choreography:
     runs-on: ubuntu-latest
     env:
-      CA: docker run --rm -v ${{ github.workspace }}:/workspace choreoatlas/cli:latest
+      CA: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1
       FLOW_GRAPH: contracts/flows/order-flow.graph.flowspec.yaml
       FLOW_SEQ: contracts/flows/order-flow.flowspec.yaml
       TRACE: traces/successful-order.trace.json
@@ -35,9 +35,11 @@ jobs:
           $CA validate --flow "/workspace/$FLOW_FILE" --trace "/workspace/$TRACE" \
             --report-format html --report-out "/workspace/reports/report.html"
 
+      - name: Run public quickstart
+        run: make demo
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: choreoatlas-reports
           path: reports/
-

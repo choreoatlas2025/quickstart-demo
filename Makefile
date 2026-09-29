@@ -12,7 +12,7 @@ offline-demo: setup
 	@echo "📁 Using pre-recorded traces from Sock Shop microservices"
 	@./scripts/generate-contracts.sh
 	@./scripts/validate-flow.sh
-	@echo "✅ Demo complete! Check reports/ (e.g. successful-order-report.html, validation-report.html)"
+	@echo "✅ Demo complete! Check reports/ (e.g. successful-order-report.html, failed-payment-report.html)"
 	@echo "💡 Try: make live-demo for full experience with running services"
 
 # Complete demo with live services (10 minutes)  

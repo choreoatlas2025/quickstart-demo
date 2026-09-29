@@ -1,92 +1,22 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "🔍 Generating ServiceSpec + FlowSpec contracts from traces..."
+cd "$(dirname "$0")/.."
 
-# Determine execution method: native CLI, Docker, or fallback to templates
-EXECUTION_METHOD=""
-CHOREOATLAS_CMD=""
-
-if command -v choreoatlas &> /dev/null; then
-    EXECUTION_METHOD="native"
-    CHOREOATLAS_CMD="choreoatlas"
-    echo "✅ Found native ChoreoAtlas CLI"
-elif command -v docker &> /dev/null; then
-    echo "⚠️  Native CLI not found, checking Docker..."
-    if docker image inspect choreoatlas/cli:latest &> /dev/null; then
-        EXECUTION_METHOD="docker"
-        CHOREOATLAS_CMD="docker run --rm -v $(pwd):/workspace choreoatlas/cli:latest"
-        echo "✅ Using Docker image: choreoatlas/cli:latest"
-    else
-        echo "📦 Docker image not found locally, attempting to pull..."
-        if docker pull choreoatlas/cli:latest &> /dev/null; then
-            EXECUTION_METHOD="docker"
-            CHOREOATLAS_CMD="docker run --rm -v $(pwd):/workspace choreoatlas/cli:latest"
-            echo "✅ Successfully pulled and will use Docker image"
-        else
-            echo "❌ Failed to pull Docker image"
-            EXECUTION_METHOD="fallback"
-        fi
-    fi
-else
-    echo "❌ Neither ChoreoAtlas CLI nor Docker available"
-    EXECUTION_METHOD="fallback"
+image="${CHOREOATLAS_IMAGE:-choreoatlas/cli:0.2.0-ce.beta.1}"
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Docker is required for the CE quickstart." >&2
+  exit 1
 fi
 
-# Ensure directories exist
-mkdir -p contracts/services contracts/flows
+mkdir -p contracts/flows contracts/services.discovered
+rm -f contracts/flows/order-flow.discovered.flowspec.yaml \
+  reports/successful-order-report.html reports/failed-payment-report.html
+echo "Discovering contracts from the sample trace with ${image}..."
+docker run --rm -v "$PWD:/workspace" -w /workspace "$image" discover \
+  --trace traces/successful-order.trace.json \
+  --out contracts/flows/order-flow.discovered.flowspec.yaml \
+  --out-services contracts/services.discovered
 
-echo "📊 Discovering contracts from successful order trace (CE format)..."
-
-case $EXECUTION_METHOD in
-    "native"|"docker")
-        echo "🔍 Attempting contract discovery with $EXECUTION_METHOD method..."
-        
-        # Check if discover command is available
-        if $CHOREOATLAS_CMD --help 2>/dev/null | grep -q "discover"; then
-            echo "✅ Discover command found, generating contracts from trace..."
-            
-            if [ "$EXECUTION_METHOD" = "docker" ]; then
-                # For Docker, we need to adjust paths to container paths
-                if $CHOREOATLAS_CMD discover \
-                    --trace /workspace/traces/successful-order.trace.json \
-                    --out /workspace/contracts/flows/order-flow.flowspec.yaml \
-                    --out-services /workspace/contracts/services 2>/dev/null; then
-                    echo "✅ ServiceSpec contracts generated in contracts/services/"
-                    echo "✅ FlowSpec contract generated: contracts/flows/order-flow.flowspec.yaml"
-                else
-                    echo "⚠️  Discovery command failed, using pre-generated contracts..."
-                    cp -r templates/contracts/* contracts/
-                fi
-            else
-                # Native CLI with local paths
-                if $CHOREOATLAS_CMD discover \
-                    --trace traces/successful-order.trace.json \
-                    --out contracts/flows/order-flow.flowspec.yaml \
-                    --out-services contracts/services 2>/dev/null; then
-                    echo "✅ ServiceSpec contracts generated in contracts/services/"
-                    echo "✅ FlowSpec contract generated: contracts/flows/order-flow.flowspec.yaml"
-                else
-                    echo "⚠️  Discovery command failed, using pre-generated contracts..."
-                    cp -r templates/contracts/* contracts/
-                fi
-            fi
-        else
-            echo "⚠️  Discover command not available yet, using pre-generated contracts..."
-            cp -r templates/contracts/* contracts/
-        fi
-        ;;
-    "fallback")
-        echo "📋 Using pre-generated contracts (no CLI available)..."
-        cp -r templates/contracts/* contracts/
-        ;;
-esac
-
-# List generated files
-echo ""
-echo "📁 Generated contract files:"
-find contracts -name "*.yaml" -o -name "*.yml" | sort
-
-echo ""
-echo "🎯 Contract discovery complete!"
-echo "💡 Next: Run './scripts/validate-flow.sh' to validate choreography"
+test -s contracts/flows/order-flow.discovered.flowspec.yaml
+echo "Discovery complete: contracts/flows/order-flow.discovered.flowspec.yaml"

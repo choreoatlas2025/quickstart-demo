@@ -6,23 +6,23 @@ This quickstart gives you a 2–10 minute, developer‑friendly journey using th
 
 中文文档请见 README.zh-CN.md
 
-[![Website](https://img.shields.io/badge/website-choreoatlas.com-0b72e7?logo=firefox-browser&logoColor=white)](https://choreoatlas.com)
-[![Docs](https://img.shields.io/badge/docs-choreoatlas.io-0b72e7?logo=readthedocs&logoColor=white)](https://choreoatlas.io)
+[![Website](https://img.shields.io/badge/website-cq365.eu.org-0b72e7?logo=firefox-browser&logoColor=white)](https://cq365.eu.org/)
+[![Docs](https://img.shields.io/badge/docs-cq365.eu.org-0b72e7?logo=readthedocs&logoColor=white)](https://cq365.eu.org/docs/)
 
-Quick links: [Website](https://choreoatlas.com) · [Docs](https://choreoatlas.io) · [Pricing](https://choreoatlas.com/pricing) · [Contact](https://choreoatlas.com/contact)
+Quick links: [Website](https://cq365.eu.org/) · [Docs](https://cq365.eu.org/docs/) · [CE release](https://github.com/choreoatlas2025/cli/releases/tag/v0.2.0-ce.beta.1)
 
 ## 🚀 Quick Start (10 minutes)
 
 ### Prerequisites
-- Docker and Docker Compose
+- Docker
 - Make (GNU Make)
-- ChoreoAtlas CLI (or use the Docker image)
+- The published CE Docker image is pulled automatically
 
 ### Install ChoreoAtlas CLI
 
 ```bash
 # Option 1: Docker (no local install needed)
-alias choreoatlas='docker run --rm -v $(pwd):/workspace choreoatlas/cli:latest'
+alias choreoatlas='docker run --rm -v $(pwd):/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1'
 
 # Option 2: Homebrew (macOS/Linux)
 brew tap choreoatlas2025/tap
@@ -82,7 +82,7 @@ The demo simulates an e-commerce microservices system:
 │   └── flows/                 # FlowSpec files (sequential + graph)
 │       ├── order-flow.flowspec.yaml         # sequential (CE primary)
 │       └── order-flow.graph.flowspec.yaml   # graph/DAG (optional)
-├── reports/                   # Generated HTML reports
+├── reports/                   # Real CLI HTML reports
 └── scripts/                   # Demo automation scripts
     ├── start-services.sh
     ├── generate-contracts.sh
@@ -118,10 +118,10 @@ make ci-demo
 
 ```bash
 # Generate FlowSpec and ServiceSpecs from a trace (CE format)
-choreoatlas spec discover \
+choreoatlas discover \
   --trace traces/successful-order.trace.json \
-  --out contracts/flows/order-flow.flowspec.yaml \
-  --out-services contracts/services
+  --out contracts/flows/order-flow.discovered.flowspec.yaml \
+  --out-services contracts/services.discovered
 
 # Output: FlowSpec + ServiceSpec files generated
 ```
@@ -130,14 +130,14 @@ choreoatlas spec discover \
 
 ```bash
 # Validate actual execution against contracts
-choreoatlas run validate \
-  --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/validation-report.html
 
 # Optional: also emit JSON or JUnit
-choreoatlas run validate \
-  --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format json --report-out reports/validation-report.json
 ```
@@ -150,7 +150,7 @@ Open `reports/validation-report.html` to see:
 - ✅ Causal relationship validation
 - 📊 Coverage metrics and thresholds
 
-Note: The demo does not auto-open a browser. Open HTML files under `reports/` manually (for example, `reports/validation-report.html` or `reports/successful-order-report.html`).
+The demo does not auto-open a browser. Open `reports/successful-order-report.html` or `reports/failed-payment-report.html` manually. The failed-payment report records an expected nonzero validation result.
 
 ## 🔧 Advanced Usage
 
@@ -160,8 +160,8 @@ Test different failure modes:
 
 ```bash
 # Test payment failure scenario
-choreoatlas run validate \
-  --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/failed-payment.trace.json \
   --report-format html --report-out reports/failure-analysis.html
 ```
@@ -171,7 +171,7 @@ choreoatlas run validate \
 A ready-to-run workflow is included: `.github/workflows/choreoatlas-validation.yml`.
 - Runs `ci-gate` (lint + validate).
 - Generates `reports/junit.xml` and `reports/report.html`.
-- Prefers `order-flow.flowspec.yaml` (sequential, CE primary); falls back to the graph file when present.
+- Uses the curated graph FlowSpec when present.
 
 ### Trace Conversion (Jaeger/OTLP → CE)
 
@@ -189,7 +189,7 @@ python3 scripts/convert-trace.py traces/successful-order.json \
   -o traces/successful-order.trace.json --map demo
 
 # Then validate
-choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/from-converted.html
 ```
@@ -201,23 +201,21 @@ Notes:
 
 ## 🎓 Next Steps
 
-1. **Apply to Your Services**: Use `choreoatlas spec discover` with your own traces
+1. **Apply to Your Services**: Use `choreoatlas discover` with your own traces
 2. **Set Up CI Gates**: Add choreography validation to your pipeline  
-3. **Explore Pro Features**: Advanced baselines, trend analysis, privacy controls
+3. **Explore CE Reports**: Review the generated validation evidence
 4. **Join Community**: https://github.com/choreoatlas2025/cli/discussions
 
 ## 📚 Documentation
 
-- **Full Documentation**: https://choreoatlas.io
-- **ServiceSpec Guide**: https://choreoatlas.io/docs/servicespec
-- **FlowSpec Guide**: https://choreoatlas.io/docs/flowspec  
-- **CI Integration**: https://choreoatlas.io/docs/ci
+- **Full Documentation**: https://cq365.eu.org/docs/
+- **Getting Started**: https://cq365.eu.org/docs/guide/getting-started
+- **CI Integration**: https://cq365.eu.org/docs/guide/ci-integration
 
 ## 🤝 Support & Community
 
 - **GitHub Issues**: https://github.com/choreoatlas2025/cli/issues
 - **Discussions**: https://github.com/choreoatlas2025/cli/discussions
-- **Email**: support@choreoatlas.com
 
 ---
 

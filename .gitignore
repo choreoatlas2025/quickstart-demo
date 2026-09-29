@@ -1,0 +1,3 @@
+reports/
+contracts/flows/*.discovered.flowspec.yaml
+contracts/services.discovered/

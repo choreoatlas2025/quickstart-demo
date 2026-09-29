@@ -7,14 +7,14 @@
 English? See README.md
 
 ## 前置条件
-- Docker 与 Docker Compose
+- Docker
 - Make（GNU Make）
-- ChoreoAtlas CLI（或直接使用 Docker 镜像）
+- 脚本自动拉取已发布的 CE Docker 镜像
 
 ## 安装 CLI（任选其一）
 ```bash
 # 方式一：Docker（无需本地安装）
-alias choreoatlas='docker run --rm -v $(pwd):/workspace choreoatlas/cli:latest'
+alias choreoatlas='docker run --rm -v $(pwd):/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1'
 
 # 方式二：Homebrew（macOS/Linux）
 brew tap choreoatlas2025/tap
@@ -31,7 +31,7 @@ make demo
 它会：
 1) 发现：从示例 trace 生成 FlowSpec + ServiceSpec 契约
 2) 校验：将编排与执行 trace 进行对照验证
-3) 报告：生成并打开 HTML 报告
+3) 报告：生成真实的 HTML 报告（需手动打开）
 
 ## 目录结构
 ```
@@ -60,31 +60,31 @@ make demo
 ## 分步操作
 ### 1) 根据 trace 发现契约
 ```bash
-choreoatlas spec discover \
+choreoatlas discover \
   --trace traces/successful-order.trace.json \
-  --out contracts/flows/order-flow.flowspec.yaml \
-  --out-services contracts/services
+  --out contracts/flows/order-flow.discovered.flowspec.yaml \
+  --out-services contracts/services.discovered
 ```
 
 ### 2) 校验编排并生成报告
 ```bash
 # HTML 报告
-choreoatlas run validate \
-  --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/validation-report.html
 
 # 可选：JSON 报告
-choreoatlas run validate \
-  --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format json --report-out reports/validation-report.json
 ```
 
 ### 3) 失败场景分析
 ```bash
-choreoatlas run validate \
-  --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate \
+  --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/failed-payment.trace.json \
   --report-format html --report-out reports/failure-analysis.html
 ```
@@ -109,7 +109,7 @@ python3 scripts/convert-trace.py traces/successful-order.json \
   -o traces/successful-order.trace.json --map demo
 
 # 然后执行校验
-choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml \
+choreoatlas validate --flow contracts/flows/order-flow.graph.flowspec.yaml \
   --trace traces/successful-order.trace.json \
   --report-format html --report-out reports/from-converted.html
 ```
@@ -119,43 +119,6 @@ choreoatlas run validate --flow contracts/flows/order-flow.flowspec.yaml \
 - 操作名可能与 ServiceSpec 的 operationId 不一致，可用 `--map demo`（内置 Sock Shop 映射）或 `--map-file` 自定义映射文件。
 - 真实 trace 往往没有完整响应载荷（response.body），相关校验可能 SKIP/FAIL；基于状态码的校验依旧有效。
 
-## CI 集成（GitHub Actions 示例）
-```yaml
-name: ChoreoAtlas Validate
-on: [push, pull_request]
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup alias (Docker)
-        run: echo "alias choreoatlas='docker run --rm -v $(pwd):/workspace choreoatlas/cli:latest'" >> $BASH_ENV
-      - name: CI gate（lint + validate）
-        run: |
-          source $BASH_ENV
-          choreoatlas ci-gate \
-            --flow contracts/flows/order-flow.flowspec.yaml \
-            --trace traces/successful-order.trace.json
-      - name: Reports
-        run: |
-          source $BASH_ENV
-          choreoatlas run validate \
-            --flow contracts/flows/order-flow.flowspec.yaml \
-            --trace traces/successful-order.trace.json \
-            --report-format junit --report-out reports/junit.xml
-          choreoatlas run validate \
-            --flow contracts/flows/order-flow.flowspec.yaml \
-            --trace traces/successful-order.trace.json \
-            --report-format html --report-out reports/report.html
-      - uses: actions/upload-artifact@v4
-        with:
-          name: choreoatlas-reports
-          path: reports/
-```
+## CI 集成
 
-## 小贴士
-- 推荐将 `alias ca=choreoatlas`，提升日常操作效率。
-- FlowSpec 支持顺序式 `flow:` 与 DAG `graph:` 两种格式；CE 以顺序式 `flow:` 为主，`graph:` 作为可选进阶格式。
-- CE 完全离线、零遥测；trace 使用内部 JSON 结构（本仓库已提供样例）。
-
-—— ChoreoAtlas CLI：以契约即代码映射、校验并引导你的服务编排
+仓库中的 [GitHub Actions 工作流](.github/workflows/choreoatlas-validation.yml) 使用已发布的 CE 镜像对图式 FlowSpec 执行门禁与真实报告生成。
