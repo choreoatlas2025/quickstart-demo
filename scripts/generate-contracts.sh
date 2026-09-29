@@ -13,7 +13,7 @@ mkdir -p contracts/flows contracts/services.discovered
 rm -f contracts/flows/order-flow.discovered.flowspec.yaml \
   reports/successful-order-report.html reports/failed-payment-report.html
 echo "Discovering contracts from the sample trace with ${image}..."
-docker run --rm -v "$PWD:/workspace" -w /workspace "$image" discover \
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" -w /workspace "$image" discover \
   --trace traces/successful-order.trace.json \
   --out contracts/flows/order-flow.discovered.flowspec.yaml \
   --out-services contracts/services.discovered

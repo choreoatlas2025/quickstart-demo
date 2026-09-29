@@ -14,7 +14,7 @@ English? See README.md
 ## 安装 CLI（任选其一）
 ```bash
 # 方式一：Docker（无需本地安装）
-alias choreoatlas='docker run --rm -v $(pwd):/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1'
+alias choreoatlas='docker run --rm --user $(id -u):$(id -g) -v $(pwd):/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1'
 
 # 方式二：Homebrew（macOS/Linux）
 brew tap choreoatlas2025/tap

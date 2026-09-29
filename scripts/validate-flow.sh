@@ -14,7 +14,7 @@ test -s traces/successful-order.trace.json
 test -s traces/failed-payment.trace.json
 
 run_cli() {
-  docker run --rm -v "$PWD:/workspace" -w /workspace "$image" "$@"
+  docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" -w /workspace "$image" "$@"
 }
 
 mkdir -p reports

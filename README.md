@@ -22,7 +22,7 @@ Quick links: [Website](https://cq365.eu.org/) · [Docs](https://cq365.eu.org/doc
 
 ```bash
 # Option 1: Docker (no local install needed)
-alias choreoatlas='docker run --rm -v $(pwd):/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1'
+alias choreoatlas='docker run --rm --user $(id -u):$(id -g) -v $(pwd):/workspace -w /workspace choreoatlas/cli:0.2.0-ce.beta.1'
 
 # Option 2: Homebrew (macOS/Linux)
 brew tap choreoatlas2025/tap
