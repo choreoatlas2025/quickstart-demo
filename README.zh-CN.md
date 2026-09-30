@@ -6,6 +6,8 @@
 
 English? See README.md
 
+安装 Docker 前可以先查看已生成的[订单通过报告](https://cq365.eu.org/reports/successful-order-report.html)和[支付失败报告](https://cq365.eu.org/reports/failed-payment-report.html)。这两份报告由本仓库的 `make demo` 和固定版本的 CE Beta 镜像生成；部分输入前置条件因示例追踪缺少字段而显示 `SKIP`。
+
 ## 前置条件
 - Docker
 - Make（GNU Make）
